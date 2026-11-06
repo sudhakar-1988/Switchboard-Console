@@ -1,121 +1,202 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { useState, type ChangeEvent, type CSSProperties } from 'react'
+import { Button, Modal, TextArea } from '@veneer/core'
+import { useTheme } from '@veneer/theme'
 import './App.css'
 
+const bundle = {
+  id: 'SB-2048-0176',
+  name: 'Universal Print Driver Soft Bundle',
+  version: '7.1.0.25570',
+  publisher: 'HP Inc.',
+  created: 'October 28, 2026',
+  odms: ['HP Universal Printing PCL 6', 'HP Universal Printing PostScript'],
+}
+
 function App() {
-  const [count, setCount] = useState(0)
+  const theme = useTheme()
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false)
+  const [reason, setReason] = useState('')
+  const [savedReason, setSavedReason] = useState('')
+  const themeTokens: CSSProperties & Record<`--${string}`, string> = {
+    '--canvas': theme.color.light.background.default,
+    '--surface': theme.color.light.background.container,
+    '--text': theme.color.light.foreground.default,
+    '--muted': theme.color.light.foreground.medium,
+    '--border': theme.color.light.stroke.default,
+    '--primary': theme.color.light.primary.base.default,
+    '--space-1': theme.layout.size1,
+    '--space-2': theme.layout.size2,
+    '--space-3': theme.layout.size3,
+    '--space-4': theme.layout.size4,
+    '--space-5': theme.layout.size5,
+    '--space-6': theme.layout.size6,
+    '--space-7': theme.layout.size7,
+    '--space-8': theme.layout.size8,
+    '--radius-2': theme.borderRadius2,
+    '--radius-3': theme.borderRadius3,
+    '--font-body': theme.typography.size3,
+    '--font-small': theme.typography.size2,
+    '--font-heading': theme.typography.size5,
+    '--line-height': theme.typography.lineHeight3,
+  }
+
+  const closeRejectModal = () => {
+    setIsRejectModalOpen(false)
+    setReason('')
+  }
+
+  const rejectBundle = () => {
+    const trimmedReason = reason.trim()
+    if (!trimmedReason) return
+
+    setSavedReason(trimmedReason)
+    closeRejectModal()
+  }
+
+  const modalFooter = (
+    <div className="modal-actions">
+      <Button appearance="secondary" onClick={closeRejectModal} type="button">
+        Cancel
+      </Button>
+      <Button
+        appearance="primary"
+        colorScheme="negative"
+        disabled={!reason.trim()}
+        onClick={rejectBundle}
+        type="button"
+      >
+        Reject
+      </Button>
+    </div>
+  )
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+    <div className="app-shell" style={themeTokens}>
+      <div className="page-context" inert={isRejectModalOpen}>
+        <header className="topbar">
+          <a className="brand" href="#home" aria-label="Switchboard Console home">
+            <span className="brand-mark" aria-hidden="true">S</span>
+            <span>Switchboard</span>
+          </a>
+          <div className="topbar-meta">
+            <span>Catalog review</span>
+            <span className="avatar" aria-label="Signed in as SD">SD</span>
+          </div>
+        </header>
+
+        <main className="workspace">
+          <nav className="breadcrumbs" aria-label="Breadcrumb">
+            <a href="#catalog">Catalog</a>
+            <span aria-hidden="true">/</span>
+            <a href="#soft-bundles">Soft Bundles</a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">Bundle details</span>
+          </nav>
+
+          <section className="bundle-heading" aria-labelledby="bundle-name">
+            <div className="bundle-heading-copy">
+              <p className="eyebrow">Soft bundle</p>
+              <h1 id="bundle-name">{bundle.name}</h1>
+              <p className="bundle-id">Bundle ID <strong>{bundle.id}</strong></p>
+            </div>
+            <div className="bundle-actions">
+              {savedReason && <span className="status-rejected">Rejected</span>}
+              <Button appearance="secondary" type="button">Approve</Button>
+              <Button
+                appearance="primary"
+                colorScheme="negative"
+                disabled={Boolean(savedReason)}
+                onClick={() => setIsRejectModalOpen(true)}
+                type="button"
+              >
+                Reject
+              </Button>
+            </div>
+          </section>
+
+          {savedReason && (
+            <p className="save-confirmation" role="status">
+              Rejection saved: {savedReason}
+            </p>
+          )}
+
+          <section className="content-section" aria-labelledby="details-title">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">Catalog submission</p>
+                <h2 id="details-title">Soft Bundle Details</h2>
+              </div>
+              <span className="review-state">Pending review</span>
+            </div>
+            <dl className="details-grid">
+              <div className="detail-item">
+                <dt>Bundle name</dt>
+                <dd>{bundle.name}</dd>
+              </div>
+              <div className="detail-item">
+                <dt>Version</dt>
+                <dd>{bundle.version}</dd>
+              </div>
+              <div className="detail-item">
+                <dt>Publisher</dt>
+                <dd>{bundle.publisher}</dd>
+              </div>
+              <div className="detail-item">
+                <dt>Submitted</dt>
+                <dd>{bundle.created}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section className="content-section odm-section" aria-labelledby="odms-title">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">Included packages</p>
+                <h2 id="odms-title">ODMs</h2>
+              </div>
+              <span className="item-count">{bundle.odms.length} packages</span>
+            </div>
+            <ul className="odm-list">
+              {bundle.odms.map((odm) => (
+                <li key={odm}>
+                  <span className="package-mark" aria-hidden="true">P</span>
+                  <span>{odm}</span>
+                  <span className="package-version">Included</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </main>
+      </div>
+
+      <Modal
+        aria-describedby="reject-description"
+        closeButton
+        closeOnBlur={false}
+        i18n={{ close: 'Close' }}
+        onClose={closeRejectModal}
+        show={isRejectModalOpen}
+        title="Reject Catalog"
+        footer={modalFooter}
+      >
+        <div className="reject-content">
+          <p id="reject-description">
+            Are you sure you would like to reject <strong>{bundle.name}</strong>? Please provide a
+            suitable reason to reject this soft bundle.
           </p>
+          <TextArea
+            label="Reason for rejection"
+            required
+            placeholder="Add your comments here"
+            value={reason}
+            onChange={(
+              valueOrEvent: string | ChangeEvent<HTMLTextAreaElement>,
+              event?: ChangeEvent<HTMLTextAreaElement>,
+            ) => setReason(typeof valueOrEvent === 'string' ? valueOrEvent : event?.target.value ?? valueOrEvent.target.value)}
+          />
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      </Modal>
+    </div>
   )
 }
 
