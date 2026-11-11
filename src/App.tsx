@@ -1,6 +1,7 @@
-import { useState, type ChangeEvent, type CSSProperties } from 'react'
-import { Button, Modal, TextArea } from '@veneer/core'
+import { useState, type CSSProperties } from 'react'
+import { Button } from '@veneer/core'
 import { useTheme } from '@veneer/theme'
+import RejectCatalogModal from './components/RejectCatalogModal'
 import './App.css'
 
 const bundle = {
@@ -15,7 +16,6 @@ const bundle = {
 function App() {
   const theme = useTheme()
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false)
-  const [reason, setReason] = useState('')
   const [savedReason, setSavedReason] = useState('')
   const themeTokens: CSSProperties & Record<`--${string}`, string> = {
     '--canvas': theme.color.light.background.default,
@@ -40,35 +40,10 @@ function App() {
     '--line-height': theme.typography.lineHeight3,
   }
 
-  const closeRejectModal = () => {
-    setIsRejectModalOpen(false)
-    setReason('')
-  }
-
-  const rejectBundle = () => {
-    const trimmedReason = reason.trim()
-    if (!trimmedReason) return
-
+  const handleReject = (trimmedReason: string) => {
     setSavedReason(trimmedReason)
-    closeRejectModal()
+    setIsRejectModalOpen(false)
   }
-
-  const modalFooter = (
-    <div className="modal-actions">
-      <Button appearance="secondary" onClick={closeRejectModal} type="button">
-        Cancel
-      </Button>
-      <Button
-        appearance="primary"
-        colorScheme="negative"
-        disabled={!reason.trim()}
-        onClick={rejectBundle}
-        type="button"
-      >
-        Reject
-      </Button>
-    </div>
-  )
 
   return (
     <div className="app-shell" style={themeTokens}>
@@ -169,33 +144,12 @@ function App() {
         </main>
       </div>
 
-      <Modal
-        aria-describedby="reject-description"
-        closeButton
-        closeOnBlur={false}
-        i18n={{ close: 'Close' }}
-        onClose={closeRejectModal}
-        show={isRejectModalOpen}
-        title="Reject Catalog"
-        footer={modalFooter}
-      >
-        <div className="reject-content">
-          <p id="reject-description">
-            Are you sure you would like to reject <strong>{bundle.name}</strong>? Please provide a
-            suitable reason to reject this soft bundle.
-          </p>
-          <TextArea
-            label="Reason for rejection"
-            required
-            placeholder="Add your comments here"
-            value={reason}
-            onChange={(
-              valueOrEvent: string | ChangeEvent<HTMLTextAreaElement>,
-              event?: ChangeEvent<HTMLTextAreaElement>,
-            ) => setReason(typeof valueOrEvent === 'string' ? valueOrEvent : event?.target.value ?? valueOrEvent.target.value)}
-          />
-        </div>
-      </Modal>
+      <RejectCatalogModal
+        bundleName={bundle.name}
+        onClose={() => setIsRejectModalOpen(false)}
+        onReject={handleReject}
+        open={isRejectModalOpen}
+      />
     </div>
   )
 }
